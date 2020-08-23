@@ -1,0 +1,59 @@
+---
+- name: Delete mariadb
+  yum:
+    name: mariadb-libs
+    state: removed
+
+- name: Register mysql 8.0
+  yum:
+    name: https://dev.mysql.com/get/mysql80-community-release-el7-1.noarch.rpm
+    # インストール済みならそのまま
+    state: present
+
+- name: Install mysql
+  yum:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - mysql-community-server
+    - mysql-community-client
+    - mysql-community-common
+    - mysql-community-libs
+  # コケそうなタスクをスキップする
+  when: not ansible_check_mode
+
+- name: Setting start to mysql
+  service:
+    name=mysqld
+    state=started
+    enabled=yes
+
+- name: Install package for need to ansible-mysql
+  yum:
+    name: "{{ packages }}"
+    state: present
+  # 変数定義
+  vars:
+    packages:
+      - MySQL-python
+      - libselinux-python
+      - yum-utils
+
+- name: Create file to connect root
+  template:
+    src: roles/mysql/templates/my.cnf
+    dest: /root/.my.cnf
+    owner: root
+    group: root
+    mode: 0644
+
+# ログファイルからrootの初期パスワードを取得
+- name: Get root password
+  shell: "grep 'A temporary password is generated for root@localhost' /var/log/mysqld.log | awk -F ' ' '{print $(NF)}'"
+  register: root_password
+
+# mysqlコマンドにてパスワード変更
+# rootでログインしパスワード変更操作を行う書き方をするとエラーになった
+# →対応策としてcommandを利用
+- name: Update root password
+  command: mysql -u root -p{{ root_password.stdout }} --connect-expired-password -e "ALTER USER 'root'@'localhost' IDENTIFIED BY 'ZAQ!xsw2';"

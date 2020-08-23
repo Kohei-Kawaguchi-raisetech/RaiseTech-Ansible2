@@ -1,0 +1,4 @@
+---
+- name: Install rails
+  # シェル実行
+  shell: bash -lc "gem install rails -v 6.0.3.2"
