@@ -1,0 +1,4 @@
+[target]
+10.0.0.236
+[ansible_hosts:children]
+target

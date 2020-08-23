@@ -1,0 +1,19 @@
+---
+- name: Upgrade all packages
+  yum:
+    name: '*'
+    # 最新にする
+    state: latest
+
+- name: Remove old git
+  yum:
+    name: git
+    # ファイル、シンボリックリンクなどを削除
+    state: absent
+
+- name: Install git
+  # 管理者権限にて実施
+  become: true
+  yum:
+    name: git
+    state: latest

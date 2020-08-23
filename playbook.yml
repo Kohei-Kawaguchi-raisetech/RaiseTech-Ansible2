@@ -1,0 +1,9 @@
+---
+- name: Playbook for target
+  hosts: target
+  become: yes
+  roles:
+    - { role: git, tags: git }
+    - { role: ruby, tags: ruby }
+    - { role: rails, tags: rails }
+    - { role: mysql, tags: mysql }

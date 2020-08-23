@@ -1,0 +1,59 @@
+---
+- name: 'Install packages'
+  yum:
+    name: "{{ item }}"
+  with_items:
+    - git
+    - gcc
+    - openssl-devel
+    - libyaml-devel
+    - readline-devel
+    - zlib-devel
+    - libffi-devel
+
+- name: 'Install rbenv'
+  git:
+    repo: https://github.com/sstephenson/rbenv.git
+    dest: /usr/local/rbenv
+
+- name: 'Set sh file'
+  template:
+    src: rbenv_system.sh.j2
+    dest: /etc/profile.d/rbenv.sh
+    owner: ec2-user
+    group: ec2-user
+    mode: 0755
+
+- name: 'Install ruby-build'
+  git:
+    repo: https://github.com/sstephenson/ruby-build.git
+    dest: /usr/local/rbenv/plugins/ruby-build
+
+- name: Create deploy group
+  group:
+    name: deploy
+
+- name: Belongs deploy group to ec2-user
+  user:
+    name: ec2-user
+    groups: deploy
+
+- name: Change owner group for deploy group
+  file:
+    path: /usr/local/rbenv
+    owner: ec2-user
+    group: deploy
+    recurse: yes # 操作を再帰的に行うか指定
+    state: directory
+
+- name: 'Install ruby'
+  shell: bash -lc "rbenv install --skip-existing 2.5.1"
+
+- name: 'Set global'
+  shell: bash -lc "rbenv global 2.5.1"
+
+- name: 'Install bundler'
+  gem:
+    name: bundler
+    user_install: no # 指定したパスにインストールするため記載
+    executable: /usr/local/rbenv/shims/gem # 実行するパスを絶対パスで指定
