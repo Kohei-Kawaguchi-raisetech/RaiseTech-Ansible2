@@ -1,4 +1,4 @@
 [target]
-54.238.93.145
+52.69.23.81
 [ansible_hosts:children]
 target
